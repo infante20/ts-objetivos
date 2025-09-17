@@ -11,6 +11,14 @@ import { evaluateCase } from './services/evaluationService';
 import { QUICK_CHALLENGE_CASES, CAMPAIGN_CASES } from './constants';
 import Button from './components/Button';
 
+// --- Music Player Data ---
+const PLAYLIST = [
+    { name: "Action Rock", url: "/background-music.mp3" },
+    { name: "Epic Journey", url: "/background-music.mp3" },
+    { name: "Mysterious Quest", url: "/background-music.mp3" }
+];
+// --- End Music Player Data ---
+
 function shuffleArray<T>(array: T[]): T[] {
     const newArray = [...array];
     for (let i = newArray.length - 1; i > 0; i--) {
@@ -37,8 +45,12 @@ const App: React.FC = () => {
     });
     const [currentCaseId, setCurrentCaseId] = useState<number | null>(null);
     const [lastResult, setLastResult] = useState<EvaluationResult | null>(null);
-    const [isMusicPlaying, setIsMusicPlaying] = useState(true);
-    const audioRef = useRef<HTMLAudioElement>(null);
+    
+    // --- Music State ---
+    const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    // --- End Music State ---
 
     useEffect(() => {
         try {
@@ -48,15 +60,29 @@ const App: React.FC = () => {
         }
     }, [progress]);
 
+    // --- Music Logic ---
     useEffect(() => {
         if (audioRef.current) {
-            if (isMusicPlaying) {
-                audioRef.current.play().catch(e => console.log("Audio play failed:", e));
+            if (isPlaying) {
+                audioRef.current.play().catch(e => console.error("Audio play failed:", e));
             } else {
                 audioRef.current.pause();
             }
         }
-    }, [isMusicPlaying]);
+    }, [isPlaying, currentTrackIndex]);
+
+    const togglePlayPause = () => {
+        setIsPlaying(!isPlaying);
+    };
+
+    const playNextTrack = () => {
+        setCurrentTrackIndex((prevIndex) => (prevIndex + 1) % PLAYLIST.length);
+        // Ensure the next track plays automatically
+        if (!isPlaying) {
+            setIsPlaying(true);
+        }
+    };
+    // --- End Music Logic ---
 
     const navigateTo = (newScreen: Screen) => {
         setScreen(newScreen);
@@ -76,14 +102,13 @@ const App: React.FC = () => {
         setGameMode(mode);
         const caseBank = mode === 'campaign' ? CAMPAIGN_CASES : QUICK_CHALLENGE_CASES;
         const shuffledBank = shuffleArray(caseBank);
-        setSessionCases(shuffledBank.slice(0, 5)); // Selecciona 5 casos al azar
+        setSessionCases(shuffledBank.slice(0, 5));
         navigateTo('case_select');
     };
 
     const submitEvaluation = (caseData: Case, answers: { problem: string; route: string; diagnostic: string; intervention: string; }) => {
         const result = evaluateCase(caseData, answers);
 
-        // Actualizar el progreso solo si el caso se aprueba y el puntaje es mejor
         if (result.passed) {
             setProgress(prev => {
                 const existingScore = prev.completedCases[caseData.id]?.score ?? 0;
@@ -141,12 +166,23 @@ const App: React.FC = () => {
 
     return (
         <div className="w-full min-h-screen bg-slate-100 font-sans">
-            <audio ref={audioRef} src="/background-music.mp3" loop />
-            <div className="absolute top-4 right-4">
-                <Button onClick={() => setIsMusicPlaying(!isMusicPlaying)} variant="secondary">
-                    {isMusicPlaying ? 'Mute' : 'Unmute'}
+            <audio ref={audioRef} src={PLAYLIST[currentTrackIndex].url} onEnded={playNextTrack} />
+            
+            {/* --- Music Player UI --- */}
+            <div className="fixed bottom-4 left-4 bg-white/50 backdrop-blur-sm rounded-lg shadow-lg p-2 flex items-center space-x-3 z-20">
+                <Button onClick={togglePlayPause} variant="secondary" size="sm">
+                    {isPlaying ? 'Pause' : 'Play'}
+                </Button>
+                <div className="text-sm">
+                    <p className="font-bold text-slate-800">Now Playing:</p>
+                    <p className="text-slate-600">{PLAYLIST[currentTrackIndex].name}</p>
+                </div>
+                <Button onClick={playNextTrack} variant="secondary" size="sm">
+                    Next
                 </Button>
             </div>
+            {/* --- End Music Player UI --- */}
+
             {renderScreen()}
         </div>
     );
