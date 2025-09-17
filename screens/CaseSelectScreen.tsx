@@ -1,6 +1,33 @@
+import React, { useState } from 'react';
+import type { Case, GameMode, Screen, UserProgress } from '../types';
 
-import React from 'react';
-import type { GameMode, Screen, UserProgress } from '../types';
+interface ImageGalleryProps {
+    imageUrls: string[];
+}
+
+const ImageGallery: React.FC<ImageGalleryProps> = ({ imageUrls }) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    if (!imageUrls || imageUrls.length === 0) {
+        return <div className="h-32 bg-slate-200 rounded-md mb-4 flex items-center justify-center text-slate-500">No hay imágenes</div>;
+    }
+
+    return (
+        <div className="relative w-full h-32 mb-4">
+            <img src={imageUrls[currentIndex]} alt="Case image" className="w-full h-full object-cover rounded-md" />
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-2">
+                {imageUrls.map((_, index) => (
+                    <button
+                        key={index}
+                        onClick={() => setCurrentIndex(index)}
+                        className={`w-2 h-2 rounded-full ${currentIndex === index ? 'bg-white' : 'bg-white/50'}`}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+};
+
 
 interface CaseSelectScreenProps {
     navigateTo: (screen: Screen) => void;
@@ -36,7 +63,7 @@ const CaseSelectScreen: React.FC<CaseSelectScreenProps> = ({ navigateTo, selectC
                     {gameMode === 'campaign' ? 'Iniciar Campaña' : 'Retos Rápidos'}
                 </h1>
             </header>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {cases.map((c, index) => {
                     const isCompleted = !!progress.completedCases[c.id];
                     
@@ -56,33 +83,30 @@ const CaseSelectScreen: React.FC<CaseSelectScreenProps> = ({ navigateTo, selectC
                     }
 
                     return (
-                        <div key={c.id}>
-                            <button
-                                onClick={() => {
-                                    if (isUnlocked) {
-                                        selectCase(c.id);
-                                        navigateTo('case_play');
-                                    }
-                                }}
-                                disabled={!isUnlocked}
-                                className={`aspect-square w-full flex flex-col items-center justify-center p-3 rounded-2xl shadow-lg transition-all duration-200 ease-in-out transform ${
-                                    isUnlocked ? 'bg-white hover:scale-105 hover:shadow-xl cursor-pointer' : 'bg-slate-200 cursor-not-allowed'
-                                }`}
-                            >
-                                {isCompleted && (
-                                    <div className="absolute top-2 right-2 bg-[#10B981] rounded-full p-1">
-                                      <CheckIcon />
-                                    </div>
-                                )}
-                                {!isUnlocked ? (
-                                    <LockIcon />
-                                ) : (
-                                    <>
-                                        <div className={`text-4xl font-extrabold ${isUnlocked ? 'text-[#2E5BFF]' : 'text-slate-400'}`}>{c.id}</div>
-                                        <p className={`text-center text-sm font-semibold mt-2 ${isUnlocked ? 'text-slate-700' : 'text-slate-500'}`}>{c.title.split(' ')[0]} {c.title.split(' ')[1]}</p>
-                                    </>
-                                )}
-                            </button>
+                        <div key={c.id} 
+                            onClick={() => {
+                                if (isUnlocked) {
+                                    selectCase(c.id);
+                                    navigateTo('case_play');
+                                }
+                            }}
+                            className={`rounded-2xl shadow-lg transition-all duration-200 ease-in-out transform overflow-hidden ${
+                                isUnlocked ? 'bg-white hover:scale-105 hover:shadow-xl cursor-pointer' : 'bg-slate-200 cursor-not-allowed'
+                            }`}
+                        >
+                            {c.imageUrls && <ImageGallery imageUrls={c.imageUrls} />}
+                            <div className="p-4">
+                                <div className="flex justify-between items-start">
+                                    <h2 className="text-lg font-bold text-slate-800">{c.title}</h2>
+                                    {isCompleted && (
+                                        <div className="bg-[#10B981] rounded-full p-1">
+                                            <CheckIcon />
+                                        </div>
+                                    )}
+                                    {!isUnlocked && <LockIcon />}
+                                </div>
+                                <p className="text-sm text-slate-600 mt-2 h-20 overflow-hidden">{c.summary}</p>
+                            </div>
                         </div>
                     );
                 })}

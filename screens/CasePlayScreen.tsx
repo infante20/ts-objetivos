@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Button from '../components/Button';
 import Card from '../components/Card';
@@ -17,6 +16,33 @@ function shuffleArray<T>(array: T[]): T[] {
     }
     return newArray;
 }
+
+interface ImageGalleryProps {
+    imageUrls: string[];
+}
+
+const ImageGallery: React.FC<ImageGalleryProps> = ({ imageUrls }) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    if (!imageUrls || imageUrls.length === 0) {
+        return <div className="h-48 bg-slate-200 rounded-lg mb-4 flex items-center justify-center text-slate-500">No hay imágenes</div>;
+    }
+
+    return (
+        <div className="relative w-full h-48 mb-6">
+            <img src={imageUrls[currentIndex]} alt="Case image" className="w-full h-full object-cover rounded-lg shadow-md" />
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-2">
+                {imageUrls.map((_, index) => (
+                    <button
+                        key={index}
+                        onClick={() => setCurrentIndex(index)}
+                        className={`w-2 h-2 rounded-full ${currentIndex === index ? 'bg-white' : 'bg-white/50'}`}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+};
 
 interface CasePlayScreenProps {
     caseData: Case | undefined;
@@ -68,13 +94,7 @@ const CasePlayScreen: React.FC<CasePlayScreenProps> = ({ caseData, navigateTo, s
             </header>
             
             <Card>
-                {caseData.imageUrl && (
-                    <img 
-                        src={caseData.imageUrl} 
-                        alt={caseData.title} 
-                        className="w-full h-48 object-cover rounded-lg mb-4 shadow-md" 
-                    />
-                )}
+                {caseData.imageUrls && <ImageGallery imageUrls={caseData.imageUrls} />}
                 <p className="text-slate-700 text-lg leading-relaxed">{caseData.summary}</p>
             </Card>
 

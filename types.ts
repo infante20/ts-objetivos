@@ -2,7 +2,7 @@ export interface Case {
     id: number;
     title: string;
     summary: string;
-    imageUrl?: string;
+    imageUrls?: string[];
     problem_options: string[];
     problem_key: string;
     route_options: string[];
