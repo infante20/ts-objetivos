@@ -13,9 +13,10 @@ import Button from './components/Button';
 
 // --- Music Player Data ---
 const PLAYLIST = [
-    { name: "Action Rock", url: "/background-music.mp3" },
-    { name: "Epic Journey", url: "/background-music.mp3" },
-    { name: "Mysterious Quest", url: "/background-music.mp3" }
+    { name: "Rock Song 1", url: "/rock1.mp3" },
+    { name: "Rock Song 2", url: "/rock2.mp3" },
+    { name: "Rock Song 3", url: "/rock3.mp3" },
+    { name: "Rock Song 4", url: "/rock4.mp3" }
 ];
 // --- End Music Player Data ---
 
